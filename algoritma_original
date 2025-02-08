@@ -1,0 +1,97 @@
+import itertools
+import time
+
+def next_permutation_narayana(arr):
+    n = len(arr)
+    i = n - 2
+    while i >= 0 and arr[i] >= arr[i+1]:
+        i -= 1
+
+    if i < 0:
+        return None
+
+    j = n - 1
+    while arr[j] <= arr[i]:
+        j -= 1
+
+    arr[i], arr[j] = arr[j], arr[i]
+    arr[i+1:] = reversed(arr[i+1:])
+    return arr
+
+def generate_permutations_narayana(digits):
+    digits = sorted(digits)
+    yield list(digits)
+
+    while True:
+        next_permutation = next_permutation_narayana(list(digits))  # create a copy
+        if next_permutation is None:
+            break
+        digits = next_permutation
+        yield list(digits)
+
+def johnson_trotter(digits):
+    n = len(digits)
+    p = list(digits)
+    directions = [1] * n
+    yield list(p)
+
+    while True:
+        largest_mobile = None
+        largest_mobile_index = -1
+        for i in range(n):
+            if directions[i] == 1 and i < n - 1 and p[i] > p[i+1]:
+                if largest_mobile is None or p[i] > largest_mobile:
+                    largest_mobile = p[i]
+                    largest_mobile_index = i
+            elif directions[i] == -1 and i > 0 and p[i] > p[i-1]:
+                if largest_mobile is None or p[i] > largest_mobile:
+                    largest_mobile = p[i]
+                    largest_mobile_index = i
+
+        if largest_mobile is None:
+            break
+
+        j = largest_mobile_index
+        if directions[j] == 1:
+            p[j], p[j+1] = p[j+1], p[j]
+            directions[j], directions[j+1] = directions[j+1], directions[j]
+            k = j + 1
+        else:
+            p[j], p[j-1] = p[j-1], p[j]
+            directions[j], directions[j-1] = directions[j-1], directions[j]
+            k = j - 1
+
+        for i in range(n):
+            if p[i] > largest_mobile:
+                directions[i] *= -1
+
+        yield list(p)
+
+def generate_permutations_itertools(digits):
+    for permutation in itertools.permutations(digits):
+        yield permutation
+
+digits = [1, 2, 3]
+
+
+
+print("Алгоритм Нараяны:")
+start_time = time.perf_counter()
+for perm in generate_permutations_narayana(digits):
+    print(perm)
+end_time = time.perf_counter()
+print(f"Время работы алгоритма Нараяны: {end_time - start_time} секунд")
+
+print("\nАлгоритм Джонсона-Троттера:")
+start_time = time.perf_counter()
+for perm in johnson_trotter(digits):
+    print(perm)
+end_time = time.perf_counter()
+print(f"Время работы алгоритма Джонсона-Троттера: {end_time - start_time} секунд")
+
+print("\nitertools:")
+start_time = time.perf_counter()
+for perm in generate_permutations_itertools(digits):
+    print(perm)
+end_time = time.perf_counter()
+print(f"Время работы itertools: {end_time - start_time} секунд")
