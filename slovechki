@@ -1,0 +1,9 @@
+import itertools
+
+def permutations(word):
+    for permutation in itertools.permutations(word):
+        yield "".join(permutation)
+
+input_word = str(input("input your word:"))
+for permutation in permutations(input_word):
+    print(permutation)
