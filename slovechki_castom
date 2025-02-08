@@ -1,0 +1,13 @@
+def permutations(word):
+    if len(word) == 0:
+        yield ""
+    else:
+        for i in range(len(word)):
+            first_char = word[i]
+            remaining_chars = word[:i] + word[i+1:]
+            for sub_permutation in permutations(remaining_chars):
+                yield first_char + sub_permutation
+
+input_word = str(input("input your word:"))
+for permutation in permutations(input_word):
+    print(permutation)
