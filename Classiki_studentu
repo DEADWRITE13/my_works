@@ -1,0 +1,149 @@
+class Person:
+    def __init__(self, name, age, gender):
+        self.__name = name
+        self.__age = age
+        self.__gender = gender  # Добавлено __
+    def get_name(self):
+        return self.__name
+
+    @property
+    def age(self):
+        return self.__age
+
+    @age.setter
+    def age(self, age):
+        if not isinstance(age, int) or age <= 0:
+            print("Некорректный возраст")
+        else:
+            self.__age = age
+
+    @property
+    def gender(self):
+        return self.__gender
+
+    @gender.setter
+    def gender(self, gender):
+        gender = gender.lower()
+        if gender not in ["м", "ж"]:
+            print("Некорректный пол")
+        else:
+            self.__gender = gender
+
+    def introduce(self):
+        print(f"Привет, {self.get_name()}, {self.age}, {self.gender}.")
+
+    
+class Employee(Person):
+    def __init__(self, name, age, gender, company, salary):
+        Person.__init__(self, name, age, gender)
+        self.__company = company
+        self.__salary = salary
+
+    def get_company(self):
+        return self.__company
+
+    def get_salary(self):
+        return self.__salary
+
+    def introduce(self):
+        Person.introduce(self) # Явный вызов, т.к. нет super
+        print(f" Работает в {self.get_company()}, зарабатывает {self.get_salary()}.")
+
+
+class Student(Person):
+    def __init__(self, name, age, gender, university, scholarship, course):
+        Person.__init__(self, name, age, gender, university, scholarship, course)
+        self.__university = university
+        self.__scholarship = scholarship
+        self.__course = course
+
+    def get_university(self):
+        return self.__university
+
+    def get_scholarship(self):
+        return self.__scholarship
+
+    def get_course(self):
+        return self.__course
+
+    def introduce(self):
+         Person.introduce(self)  # Явный вызов, т.к. нет super
+         print(f" Учится в {self.get_university()}, {self.get_course()} курс, стипендия {self.get_scholarship()}.")
+
+
+
+class WorkingStudent(Employee, Student):
+    def __init__(self, name, age, gender, company, salary, university, scholarship, course):
+        Employee.__init__(self, name, age, gender, company, salary)
+        Student.__init__(self, name, age, gender, university, scholarship, course)
+    def total_income(self): return self.get_salary() + self.get_scholarship()
+    def introduce(self):
+        Employee.introduce(self)
+        Student.introduce(self)
+        print(f" Доход: {self.total_income()}.")
+
+def get_input(prompt, type=str):
+    while True:
+        try:
+            value = type(input(prompt))
+            return value
+        except ValueError:
+            print(f"Некорректный ввод. Пожалуйста, введите {type.__name__}.")
+
+def create_person():
+    n = get_input("Введите имя: ")
+    a = get_input("Введите возраст: ", int)
+    g = get_input("Введите пол (м/ж(только букву)): ")
+    return Person(n, a, g)
+
+def create_employee():
+    n = get_input("Введите имя: ")
+    a = get_input("Введите возраст: ", int)
+    g = get_input("Введите пол (м/ж(только букву)): ")
+    c = get_input("Введите компанию: ")
+    s = get_input("Введите зарплату: ", float)
+    return Employee(n, a, g, c, s)
+
+def create_student():
+    n = get_input("Введите имя: ")
+    a = get_input("Введите возраст: ", int)
+    g = get_input("Введите пол (м/ж(только букву)): ")
+    u = get_input("Введите университет: ")
+    sc = get_input("Введите стипендию: ", float)
+    c = get_input("Введите курс: ", int)
+    return Student(n, a, g, u, sc, c)
+
+def create_working_student():
+    n = get_input("Введите имя: ")
+    a = get_input("Введите возраст: ", int)
+    g = get_input("Введите пол (м/ж(только букву)): ")
+    c = get_input("Введите компанию: ")
+    s = get_input("Введите зарплату (больше стипендии): ", float)
+    u = get_input("Введите университет: ")
+    sc = get_input("Введите стипендию: ", float)
+    co = get_input("Введите курс: ", int)
+    if s <= sc:
+        print("Зарплата работающего студента должна быть больше стипендии.")
+        return None
+    return WorkingStudent(n, a, g, c, s, u, sc, co)
+
+choice = get_input("Создать (ч)еловека, (р)аботника, (с)тудента, (р)аботающего студента: ").lower()
+
+try:
+    if choice == 'ч':
+        p = create_person()
+        p.introduce()
+    elif choice == 'р':
+        e = create_employee()
+        e.introduce()
+    elif choice == 'с':
+        s = create_student()
+        s.introduce()
+    elif choice == 'w' or choice == 'рc':
+        ws = create_working_student()
+        if ws:
+            ws.introduce()
+    else:
+        print("Некорректный выбор.")
+except ValueError as err:
+    print(f"Ошибка: {err}")
