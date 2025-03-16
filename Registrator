@@ -1,0 +1,54 @@
+import psycopg2 
+import hashlib
+dbname = "postgres"
+user = "postgres"
+password = "password"
+host = "localhost"
+port = "5432"
+class Registrator:
+    def __init__(self):  # Исправлено
+        self.username = None
+        self.password = None
+        self.repeat_password = None
+    def input_registrator(self):
+        vusername = str(input("Введите свое имя"))
+        vpassword = str(input("Введите свой пароль"))
+        vrepeat_password = str(input("Повторите свoй пароль"))
+        self.username = vusername
+        self.password = vpassword
+        self.repeat_password = vrepeat_password
+    def registrator(self):  # Исправлено
+        user_password_hash = hashlib.sha512(self.password.encode()).hexdigest()
+        user_password_repeat_hash = hashlib.sha512(self.repeat_password.encode()).hexdigest()
+        if user_password_hash == user_password_repeat_hash:
+            try:
+                conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
+                cursor = conn.cursor()
+                sql_insert = """
+                    INSERT INTO users2 (username, user_password_hash, user_password_repeat_hash)
+                    VALUES (%s, %s, %s);
+                    """
+                data = (self.username, user_password_hash, user_password_repeat_hash) # Исправлено
+                cursor.execute(sql_insert, data)
+                conn.commit()
+                print("Данные успешно добавлены в таблицу!")
+                return True
+            except psycopg2.Error as e:
+                print(f"Ошибка при работе с PostgreSQL: {e}")
+                if conn:
+                    conn.rollback()
+                return False
+            finally:
+                if conn:
+                    cursor.close()
+                    conn.close()
+                    print("Соединение с PostgreSQL закрыто.")
+        else:
+            print("нисовпала")
+            return False
+registrator = Registrator()
+registrator.input_registrator()
+if registrator.registrator():
+    print("Пользователь успешно зарегистрирован.")
+else:
+    print("Регистрация пользователя не удалась.")
