@@ -1,0 +1,140 @@
+import hashlib
+import pandas as pd
+import os
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
+
+class UserData:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(UserData, cls).__new__(cls)
+            cls._instance.filename = "users.csv"
+            cls._instance.data = cls._instance.load_users_data()
+        return cls._instance
+
+    def load_users_data(self):
+        if os.path.exists(self.filename):
+            try:
+                return pd.read_csv(self.filename, index_col="login")
+            except pd.errors.EmptyDataError:
+                return pd.DataFrame(columns=["password_hash"])
+        else:
+            return pd.DataFrame(columns=["password_hash"])
+
+    def save_users_data(self):
+        self.data.to_csv(self.filename, index_label="login")
+
+
+def register(login, password, password_repeat):
+    user_password_hash = hashlib.sha256(password.encode()).hexdigest()
+    user_password_repeat_hash = hashlib.sha256(password_repeat.encode()).hexdigest()
+
+    if user_password_hash == user_password_repeat_hash:
+        user_data = UserData()
+        if login in user_data.data.index:
+            return "Логин уже занят."
+        else:
+            new_user = pd.DataFrame({"password_hash": [user_password_hash]}, index=[login])
+            user_data.data = pd.concat([user_data.data, new_user])
+            user_data.save_users_data()
+            return "Регистрация успешна!"
+    else:
+        return "Пароли не совпадают."
+
+def enter(login, password):
+    user_password_input_hash = hashlib.sha256(password.encode()).hexdigest()
+    user_data = UserData()
+
+    if login in user_data.data.index:
+        if user_data.data.loc[login, "password_hash"] == user_password_input_hash:
+            return "Вход выполнен успешно!"
+        else:
+            return "Неверный пароль."
+    else:
+        return "Пользователь с таким логином не найден."
+
+class LoginApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Авторизация")
+        style = ttk.Style()
+        style.configure("TButton", padding=5, relief="raised")
+        style.configure("TLabel", padding=5)
+        style.configure("TEntry", padding=5)
+        self.login = tk.StringVar()
+        self.password = tk.StringVar()
+        self.password_repeat = tk.StringVar()
+        self.main_frame = ttk.Frame(root, padding=10)
+        self.main_frame.pack(expand=True, fill="both")
+        self.register_button = ttk.Button(self.main_frame, text="Регистрация", command=self.show_registration_page)
+        self.register_button.pack(pady=10)
+        self.login_button = ttk.Button(self.main_frame, text="Вход", command=self.show_login_page)
+        self.login_button.pack(pady=10)
+        self.registration_frame = ttk.Frame(root, padding=10)
+        self.registration_frame.grid_columnconfigure(0, weight=1)  # Растягивать колонку
+        ttk.Label(self.registration_frame, text="Логин:").grid(row=0, column=0, sticky=tk.W)
+        self.login_entry_reg = ttk.Entry(self.registration_frame, textvariable=self.login)
+        self.login_entry_reg.grid(row=0, column=1, sticky=tk.EW)
+        ttk.Label(self.registration_frame, text="Пароль:").grid(row=1, column=0, sticky=tk.W)
+        self.password_entry_reg = ttk.Entry(self.registration_frame, textvariable=self.password, show="*")
+        self.password_entry_reg.grid(row=1, column=1, sticky=tk.EW)
+        ttk.Label(self.registration_frame, text="Повторите пароль:").grid(row=2, column=0, sticky=tk.W)
+        self.password_repeat_entry = ttk.Entry(self.registration_frame, textvariable=self.password_repeat, show="*")
+        self.password_repeat_entry.grid(row=2, column=1, sticky=tk.EW)
+        self.register_final_button = ttk.Button(self.registration_frame, text="Зарегистрироваться", command=self.register_user)
+        self.register_final_button.grid(row=3, column=0, columnspan=2, pady=10)
+        self.back_to_main_button_reg = ttk.Button(self.registration_frame, text="Назад", command=self.show_main_page)
+        self.back_to_main_button_reg.grid(row=4, column=0, columnspan=2, pady=10)
+        self.registration_frame.pack_forget()
+        self.login_frame = ttk.Frame(root, padding=10)
+        self.login_frame.grid_columnconfigure(0, weight=1)
+
+        ttk.Label(self.login_frame, text="Логин:").grid(row=0, column=0, sticky=tk.W)
+        self.login_entry_login = ttk.Entry(self.login_frame, textvariable=self.login)
+        self.login_entry_login.grid(row=0, column=1, sticky=tk.EW)
+
+        ttk.Label(self.login_frame, text="Пароль:").grid(row=1, column=0, sticky=tk.W)
+        self.password_entry_login = ttk.Entry(self.login_frame, textvariable=self.password, show="*")
+        self.password_entry_login.grid(row=1, column=1, sticky=tk.EW)
+
+        self.login_final_button = ttk.Button(self.login_frame, text="Войти", command=self.login_user)
+        self.login_final_button.grid(row=2, column=0, columnspan=2, pady=10)
+        self.back_to_main_button_login = ttk.Button(self.login_frame, text="Назад", command=self.show_main_page)
+        self.back_to_main_button_login.grid(row=3, column=0, columnspan=2, pady=10)
+
+        self.login_frame.pack_forget()
+    def show_registration_page(self):
+        self.main_frame.pack_forget()
+        self.login_frame.pack_forget()
+        self.registration_frame.pack(expand=True, fill="both")
+        self.login.set("")  #
+        self.password.set("")
+        self.password_repeat.set("")
+    def show_login_page(self):
+        self.main_frame.pack_forget()
+        self.registration_frame.pack_forget()
+        self.login_frame.pack(expand=True, fill="both")
+        self.login.set("")  #
+        self.password.set("")
+    def show_main_page(self):
+        self.registration_frame.pack_forget()
+        self.login_frame.pack_forget()
+        self.main_frame.pack(expand=True, fill="both")
+    def register_user(self):
+        login = self.login.get()
+        password = self.password.get()
+        password_repeat = self.password_repeat.get()
+        result = register(login, password, password_repeat)
+        messagebox.showinfo("Результат регистрации", result)
+    def login_user(self):
+        login = self.login.get()
+        password = self.password.get()
+        result = enter(login, password)
+        messagebox.showinfo("Результат входа", result)
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = LoginApp(root)
+    root.mainloop()
