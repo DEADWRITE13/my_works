@@ -74,7 +74,8 @@ class LoginApp:
         self.login_button = ttk.Button(self.main_frame, text="Вход", command=self.show_login_page)
         self.login_button.pack(pady=10)
         self.registration_frame = ttk.Frame(root, padding=10)
-        self.registration_frame.grid_columnconfigure(0, weight=1)  # Растягивать колонку
+        self.registration_frame.grid_columnconfigure(0, weight=1) 
+
         ttk.Label(self.registration_frame, text="Логин:").grid(row=0, column=0, sticky=tk.W)
         self.login_entry_reg = ttk.Entry(self.registration_frame, textvariable=self.login)
         self.login_entry_reg.grid(row=0, column=1, sticky=tk.EW)
