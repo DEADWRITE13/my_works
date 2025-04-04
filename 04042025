@@ -1,0 +1,49 @@
+import re
+from datetime import datetime
+
+def is_leap_year(year):
+    if year % 4 != 0:
+        return False
+    elif year % 100 != 0:
+        return True
+    else:
+        return year % 400 == 0
+def get_days_in_month(year, month):
+    if month == 2:
+        return 29 if is_leap_year(year) else 28
+    elif month in [4, 6, 9, 11]:
+        return 30
+    else:
+        return 31
+def validate_date(date_str):
+    try:
+        day, month, year = map(int, date_str.split('.'))
+        if not (1 <= month <= 12):
+            return False
+        max_days = get_days_in_month(year, month)
+        return 1 <= day <= max_days
+    except (ValueError, AttributeError):
+        return False
+def main():
+    input_filename = 'input.txt'
+    output_filename = 'output.txt'
+    try:
+        with open(input_filename, 'r', encoding='utf-8') as file:
+            content = file.read()
+    except FileNotFoundError:
+        print(f"Файл '{input_filename}' не найден!")
+        return
+    except Exception as e:
+        print(f"Ошибка при чтении : {e}")
+        return
+    dates = re.findall(r'\b\d{2}\.\d{2}\.\d{4}\b', content)
+    valid_dates = [date for date in dates if validate_date(date)]
+    try:
+        with open(output_filename, 'w', encoding='utf-8') as file:
+            for date in valid_dates:
+                file.write(date + '\n')
+        print(f"Успешно! Результат записан в '{output_filename}'.")
+    except Exception as e:
+        print(f"Ошибка при записи в файл: {e}")
+if __name__ == "__main__":
+    main()
