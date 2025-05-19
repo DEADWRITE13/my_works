@@ -1,19 +1,13 @@
 import rsa
 import hashlib
 import base64
-
-
 def generate_key_pair():
     pubkey, privkey = rsa.newkeys(2048)
     return privkey.save_pkcs1(), pubkey.save_pkcs1()
-
-
 def create_signature(message, private_key):
     privkey = rsa.PrivateKey.load_pkcs1(private_key)
     signature = rsa.sign(message.encode('utf-8'), privkey, 'SHA-256')
     return base64.b64encode(signature).decode('utf-8')
-
-
 def verify_signature(message, signature, public_key):
     pubkey = rsa.PublicKey.load_pkcs1(public_key)
     try:
@@ -23,28 +17,20 @@ def verify_signature(message, signature, public_key):
         return True
     except rsa.VerificationError:
         return False
-
-
 def main():
     print("Демонстрация неквалифицированной электронной подписи")
     private_key, public_key = generate_key_pair()
     print("\nСгенерирована пара ключей:")
     print(f"Приватный ключ:",private_key.decode('utf-8'))
     print(f"Публичный ключ:",public_key.decode('utf-8'))
-
-    message = "Важное сообщение, требующее подписи"
+    message = str(input("Введите сообщение"))
     print(f"\nСообщение для подписи: '{message}'")
-
     signature = create_signature(message, private_key)
     print(f"\nСозданная подпись: {signature[:50]}...")
-
     is_valid = verify_signature(message, signature, public_key)
     print(f"\nПроверка подписи: {'валидна' if is_valid else 'невалидна'}")
-
-    fake_message = "Поддельное сообщение"
+    fake_message = str(input("Введите поддельное сообщение"))
     is_valid_fake = verify_signature(fake_message, signature, public_key)
-    print(f"Попытка подделки: {'успешна' if is_valid_fake else 'неуспешна'}")
-
-
+    print(f"Попытка подделки:{'успешна' if is_valid_fake else 'неуспешна'}")
 if __name__ == "__main__":
     main()
